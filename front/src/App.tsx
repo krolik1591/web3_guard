@@ -9,17 +9,8 @@ import {
 import {useState} from "react";
 import "./style.css"
 import {ethers} from "ethers";
+import {metadata, projectId, SERVER_URL} from "./config";
 
-// todo change
-const projectId = "dd03eee94397973a39addb45d848ce3d"
-const metadata = {
-    name: 'My Website',
-    description: 'My Website description',
-    url: 'https://mywebsite.com',
-    icons: ['https://avatars.mywebsite.com/']
-}
-
-const SERVERURL = 'http://localhost:8080'
 
 createWeb3Modal({
     ethersConfig: defaultConfig({metadata}),
@@ -35,11 +26,8 @@ function App() {
     const [isWaitingSign, setIsWaitingSign] = useState(false);
 
     const searchParams = new URLSearchParams(document.location.search)
-    const userId = searchParams.get('userId')
-    const channelId = searchParams.get('channelId')
-    const msgToSign = searchParams.get('msgToSign')
-    const tokenAddress = searchParams.get('tokenAddress')
-    const tokenBalance = searchParams.get('tokenBalance')
+    console.log(searchParams)
+    const {userId, channelId, msgToSign, tokenAddress,tokenBalance} = Object.fromEntries(searchParams.entries());
 
     async function connect() {
         await open();
@@ -56,7 +44,7 @@ function App() {
         try {
             const signature = await signer.signMessage(ethers.utils.toUtf8Bytes(msgToSign));
 
-            const resp = await fetch(SERVERURL + '/check', {
+            const resp = await fetch(SERVER_URL + '/check', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({userId, channelId, tokenAddress, tokenBalance, signature})

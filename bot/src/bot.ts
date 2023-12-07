@@ -1,28 +1,45 @@
-import {Context, Markup, Telegraf} from "telegraf";
-import {getBalance, recoverAddress} from "./utils";
+import {Markup, Telegraf} from "telegraf";
+import {checkDeepLink, getMsg, packDeeplink} from "./web3";
 
 export const bot = new Telegraf('6520715679:AAHarCYuKoMQEUOKkW8_FgAayi8AV5Z7h1s');
 
 bot.start((ctx: any) => {
-  console.log(ctx.from.id);
-  ctx.reply('Click the button below to verify your address:', Markup.keyboard([
-    Markup.button.webApp("Verify", "https://t.svinua.cf/?userid=" + ctx.from.id),
-  ]));
-});
+    const userId = ctx.from.id;
+    const deepLinkData = ctx.message.text.split(' ')[1]
+    if (!deepLinkData)
+        return ctx.sendMessage('Hi!')
 
-bot.on('message', async (ctx: any) => {
-  const message = ctx.message.from.id.toString();
-  const signature = ctx.message.web_app_data.data;
-  if (!signature) return;
+    const {channelId, tokenAddress, tokenBalance} = checkDeepLink(deepLinkData);
 
-  const address = await recoverAddress(message, signature);
-  const balance = await getBalance(address);
+    const msgToSign = getMsg(userId, channelId, tokenAddress, tokenBalance.toString())
+    const queryParams = new URLSearchParams({userId, channelId, tokenAddress, tokenBalance, msgToSign}).toString();
+    const url = `http://localhost:3000?${queryParams}`
 
-  await ctx.replyWithHTML(`<b>Verificated!</b> 
-Your address: ${address} 
-Your balance: ${balance} (WETH token on eth mainnet)
-Your join link: //todo
-    `)
-
+    ctx.sendMessage(url)
+    // ctx.reply('Click the button below to verify your address:', Markup.inlineKeyboard([
+    //   Markup.button.url('Verify', "https://localhost:3000/")
+    // ]));
 })
 
+bot.command('create', (ctx) => {
+    const channelId = ctx.chat.id
+    const [_, tokenAddress, tokenBalance] = ctx.message.text.split(' ')
+
+  console.log(channelId, tokenAddress, tokenBalance)
+    const deeplink = packDeeplink(channelId, tokenAddress, +tokenBalance)
+    const url = `http://t.me/${bot.botInfo?.username}?start=${deeplink}`
+
+    console.log(deeplink)
+    ctx.reply('Click the button below to verify your address:', Markup.inlineKeyboard([
+        Markup.button.url('Verify', url)
+    ]));
+})
+
+export async function sendInviteLink(chanelId: number, userId: number, userAddress: string){
+    const link = await bot.telegram.createChatInviteLink(-1002031460106, {
+        member_limit: 1,
+        name: `${userId} ${userAddress}`
+    })
+
+    await bot.telegram.sendMessage(userId, link.invite_link)
+}

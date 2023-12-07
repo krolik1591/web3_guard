@@ -2,7 +2,8 @@
   "name": "bot",
   "version": "1.2.8",
   "scripts": {
-    "bot": "ts-node src/index.ts"
+    "bot": "ts-node src/index.ts",
+    "test": "ts-node src/web3.ts"
   },
   "devDependencies": {
     "@types/node": "^20.10.3",
@@ -13,6 +14,7 @@
   "dependencies": {
     "ethers": "^5.7.2",
     "fastify": "^4.10.2",
-    "telegraf": "^4.15.0"
+    "telegraf": "^4.15.0",
+    "@fastify/cors": "^8.2.1"
   }
 }

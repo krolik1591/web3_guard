@@ -2,7 +2,7 @@ import fastify, {FastifyReply, FastifyRequest} from "fastify";
 import {getBalance, getMsg, recoverSigner} from "./web3";
 import cors from "@fastify/cors";
 import {ethers} from "ethers";
-import {sendInviteLink} from "./bot";
+import {bot, sendInviteLink} from "./bot";
 
 export async function startServer(){
     const app = fastify({ logger: true, trustProxy: true });
@@ -28,6 +28,7 @@ export async function checkEndpoint(req: FastifyRequest, res: FastifyReply) {
     console.log(userAddress)
 
     if (balance < tokenBalance){
+        await bot.telegram.sendMessage(userId, `Not enough balance! \n\nYour balance: ${balance} \nMinimum required: ${tokenBalance}`)
         await res.code(402)
         return console.log('fuck u cheap freak')
     }

@@ -28,10 +28,12 @@ export function recoverSigner(msgToSign: string, signature: string) {
 
 
 export function packDeeplink(channelId: number, tokenAddress: string, tokenBalance: number) {
-    channelId = Math.abs(channelId) // negative numbers doesn't encode well
+    channelId = channelId + 1e15 // negative numbers doesn't encode well
+    tokenAddress = tokenAddress.toLowerCase()
 
     const hash = getMsg(hexlify(channelId), tokenAddress, hexlify(tokenBalance)).slice(0, 18)  // first 8 bytes
     const packed = RLP.encode([hexlify(channelId), hexlify(tokenBalance), tokenAddress, hash]);
+    // console.log("PACK", [hexlify(channelId), hexlify(tokenBalance), tokenAddress, hash])
     return base58.encode(packed)
 }
 
@@ -39,13 +41,15 @@ export function checkDeepLink(deepLinkData: string) {
     const decoded = base58.decode(deepLinkData);
     let [channelId, tokenBalance, tokenAddress, hash] = RLP.decode(decoded)
 
+    // console.log("CHECK", [channelId, tokenBalance, tokenAddress, hash])
+
     const verifyHash = getMsg(channelId, tokenAddress, tokenBalance).slice(0, 18)  // first 8 bytes
     if (hash != verifyHash) {
         console.warn("wrong hash", hash, verifyHash)
         throw "wrong hash";
     }
 
-    if (channelId > 1000000000000) channelId *= -1; // undo math.abs from encode
+    channelId -= 1e15; // undo magic from encode
 
     return {
         channelId: +channelId,
@@ -65,5 +69,5 @@ function test(channelId1: number, tokenAddress1: string, tokenBalance1: number) 
 
 }
 
-test(357108179, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", 99999999999)
-test(-1002031460106, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", 99999999999)
+// test(357108179, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", 99999999999)
+// test(-1002031460106, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", 99999999999)

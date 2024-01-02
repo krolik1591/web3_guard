@@ -12,20 +12,27 @@ export async function startServer(){
     app.post("/check", checkEndpoint);
 
 
-    await app.listen({ port: 8080 })
+    await app.listen({ host: "0.0.0.0", port: 8080 })
 }
 
 export async function checkEndpoint(req: FastifyRequest, res: FastifyReply) {
     const {userId, channelId, tokenAddress, tokenBalance, signature} = req.body as any
 
-    const msgToSign = getMsg(userId, channelId)
+    const msgToSign = getMsg(userId.toString(), channelId.toString(), tokenAddress, tokenBalance.toString())
+    console.log(userId, channelId, msgToSign)
+
     const userAddress = recoverSigner(msgToSign, signature)
-    const balanceWei = await getBalance(tokenAddress, userAddress);
-    const balance = +ethers.utils.formatEther(balanceWei);
+    const balance = +(await getBalance(tokenAddress, userAddress));
+
     console.log(balance)
     console.log(userAddress)
+
     if (balance < tokenBalance){
+        await res.code(402)
         return console.log('fuck u cheap freak')
     }
     await sendInviteLink(channelId, userId, userAddress)
+
+    await res.code(200)
+
 }

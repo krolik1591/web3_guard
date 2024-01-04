@@ -3,6 +3,7 @@ import {checkDeepLink, getBalance, getMsg, packDeeplink} from "./web3";
 import {BOT_TOKEN, FRONT_URL} from "./config";
 import {isAddress} from "ethers/lib/utils";
 import {channelMode} from "./allow_channel";
+import {InlineKeyboardMarkup} from "telegraf/src/core/types/typegram";
 
 export const bot = new Telegraf(BOT_TOKEN);
 bot.use(channelMode())
@@ -70,9 +71,22 @@ bot.command('create', async (ctx) => {
     const deeplink = packDeeplink(+channelId, tokenAddress, +tokenBalance)
     const url = `http://t.me/${bot.botInfo?.username}?start=${deeplink}`
 
-    ctx.reply('Click the button below to verify your address:', Markup.inlineKeyboard([
-        Markup.button.url('Verify', url)
-    ]));
+    const photoPath = './src/image.jpg'
+    const inlineKeyboard: InlineKeyboardMarkup = {
+        inline_keyboard: [
+            [Markup.button.url('Verify', url)],
+            [
+                Markup.button.url('Link1', `https://t.me/${ctx.botInfo?.username}?startgroup=1`),
+                Markup.button.url('Link2', `https://t.me/${ctx.botInfo?.username}?startgroup=1`),
+            ],
+            [
+                Markup.button.url('Link3', `https://t.me/${ctx.botInfo?.username}?startgroup=1`),
+                Markup.button.url('Link4', `https://t.me/${ctx.botInfo?.username}?startgroup=1`),
+            ],
+        ],
+    };
+    ctx.replyWithPhoto({source: photoPath},
+        {caption: 'Click the button below to verify your address:', reply_markup: inlineKeyboard})
 })
 
 export async function sendInviteLink(chanelId: number, userId: number, userAddress: string) {

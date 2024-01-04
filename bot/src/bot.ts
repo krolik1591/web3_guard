@@ -72,6 +72,7 @@ bot.command('create', async (ctx) => {
     const url = `http://t.me/${bot.botInfo?.username}?start=${deeplink}`
 
     const photoPath = './src/image.jpg'
+    const text = 'Click the button below to verify your address:'
     const inlineKeyboard: InlineKeyboardMarkup = {
         inline_keyboard: [
             [Markup.button.url('Verify', url)],
@@ -85,8 +86,7 @@ bot.command('create', async (ctx) => {
             ],
         ],
     };
-    ctx.replyWithPhoto({source: photoPath},
-        {caption: 'Click the button below to verify your address:', reply_markup: inlineKeyboard})
+    ctx.replyWithPhoto({source: photoPath},{caption: text, reply_markup: inlineKeyboard})
 })
 
 export async function sendInviteLink(chanelId: number, userId: number, userAddress: string) {
